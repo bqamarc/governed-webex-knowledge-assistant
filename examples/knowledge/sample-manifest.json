@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "source": {
+    "id": "example-security-handbook",
+    "title": "Example Security Handbook",
+    "uri": "urn:example:security-handbook",
+    "source_class": "synthetic",
+    "audience": "public",
+    "reviewed": true,
+    "effective_at": "2020-01-01T00:00:00Z",
+    "expires_at": null
+  },
+  "records": [
+    {
+      "id": "report-a-suspicious-message",
+      "question": "How do I report a suspicious message?",
+      "keywords": ["report", "suspicious", "message", "phishing"],
+      "answer": "Use your organization's approved reporting channel and preserve the original message until the security team confirms that it is safe to remove.",
+      "answerable": true,
+      "citation_mode": "title_only"
+    },
+    {
+      "id": "protect-an-access-token",
+      "question": "How should an access token be stored?",
+      "keywords": ["access", "token", "secret", "credential", "store"],
+      "answer": "Store access tokens in a managed secret service or an injected runtime secret. Do not place them in source code, logs, screenshots, or test fixtures.",
+      "answerable": true,
+      "citation_mode": "title_only"
+    },
+    {
+      "id": "unreviewed-procedure",
+      "question": "What is the emergency administrator procedure?",
+      "keywords": ["emergency", "administrator", "procedure"],
+      "answer": "This synthetic candidate is intentionally unavailable until it is reviewed.",
+      "answerable": false,
+      "citation_mode": "none"
+    }
+  ]
+}

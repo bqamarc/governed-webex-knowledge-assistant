@@ -1,0 +1,19 @@
+include .dockerignore
+include .editorconfig
+include .env.example
+include .gitattributes
+include .gitignore
+include CONTRIBUTING.md
+include Dockerfile
+include LICENSE
+include Makefile
+include README.md
+include SECURITY.md
+include SUPPORT.md
+include alembic.ini
+include compose.yaml
+recursive-include docs *.md
+recursive-include examples *.json
+recursive-include migrations *.py *.mako
+recursive-include scripts *.py
+recursive-include tests *.py

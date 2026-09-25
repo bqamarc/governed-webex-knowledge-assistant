@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m pip install 'pip-audit>=2.10,<3' 'detect-secrets>=1.5,<2'
+      - run: pip-audit --local --skip-editable --progress-spinner off
+      - run: detect-secrets-hook $(git ls-files)
+      - run: make verify
+      - run: docker build --tag governed-webex-assistant-ci .
+        if: matrix.python-version == '3.12'
+      - run: >-
+          docker run --rm --network none --entrypoint /bin/sh governed-webex-assistant-ci
+          -c 'set -eu; test "$(id -u)" = 10001; test "$(id -g)" != 0;
+          python -m pip check; python -c "import webex_knowledge_assistant";
+          webex-knowledge-assistant --help >/dev/null;
+          webex-knowledge-assistant validate-manifest >/dev/null'
+        if: matrix.python-version == '3.12'
+
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: webex_assistant_test
+          POSTGRES_USER: webex_assistant
+          POSTGRES_PASSWORD: test-password # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U webex_assistant -d webex_assistant_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+psycopg://webex_assistant:test-password@localhost:5432/webex_assistant_test # pragma: allowlist secret
+      - run: python -m alembic check
+        env:
+          DATABASE_URL: postgresql+psycopg://webex_assistant:test-password@localhost:5432/webex_assistant_test # pragma: allowlist secret
+      - run: python scripts/postgres_queue_smoke.py
+        env:
+          DATABASE_URL: postgresql+psycopg://webex_assistant:test-password@localhost:5432/webex_assistant_test # pragma: allowlist secret
